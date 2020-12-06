@@ -28,3 +28,28 @@ Write Minecraft command scripts for your server, in a Pythonic way.
    ```
 
 7. Run `rconjobs.py`. Now it works!
+
+## Example
+
+Here is an example script which backups the server world everyday in 1 o`clock, with plugin [KBackup-Fabric](https://github.com/keuin/KBackup-Fabric):
+
+```python
+from jobs import BaseTask, _RConsole
+
+
+class BackupTask(BaseTask):
+    __last_executed_day = -1
+
+    def should_run(self, year: int, month: int, day: int, hour: int, minute: int, week_day: int) -> bool:
+        if hour == 1:
+            if day != self.__last_executed_day:
+                self.__last_executed_day = day
+                return True
+        return False
+
+    def run(self, console: _RConsole) -> None:
+        console.execute('say Backup the world...')
+        console.execute('kb backup')
+```
+
+The command `kb backup` does the backup work, and it could be replaced with other backup commands.
