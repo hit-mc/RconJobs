@@ -29,6 +29,7 @@ class JobRunner(Thread):
         self.__run = False
 
     def run(self):
+        print('Polling thread is started.')
         while self.__run:
             for task in self.__tasks:
                 task: BaseTask
@@ -45,6 +46,7 @@ class JobRunner(Thread):
                     elif end_time - start_time > 1:
                         print(f'Task {task.__class__.__name__} takes {round(end_time - start_time, 2)}s!')
             time.sleep(1)
+        print('Polling thread stopped.')
 
 
 def _load_tasks(task_directory: str) -> list:
