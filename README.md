@@ -8,7 +8,7 @@ Write Minecraft command scripts for your server, in a Pythonic way.
 
 2. Ensure your python(>=3.8) environment is ready, and dependencies are satisfied.
 
-3. Create new `.py` file for your single new task in `tasks` folder.
+3. Create a new `.py` file for your single new task in `tasks` folder.
 
 4. Create a new class in that file, which inherits from `BaseTask` class in `jobs.py` (you have to `from jobs import BaseTask` in advance).
 
