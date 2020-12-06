@@ -63,7 +63,21 @@ def _load_tasks(task_directory: str) -> list:
     return loaded_tasks
 
 
-def main(task_directory: str = 'tasks'):
+runner = None
+console = None
+
+
+def interactive():
+    while True:
+        cmd = input('>>')
+        if cmd == 'stop':
+            if isinstance(runner, JobRunner):
+                runner.stop()
+            return
+
+
+def start(task_directory: str = 'tasks'):
+    global runner, console
     if not os.path.isfile('rconjobs.json'):
         print('Config file does not exist.')
         exit()
@@ -76,8 +90,9 @@ def main(task_directory: str = 'tasks'):
     print('Starting job runner...')
     runner = JobRunner(tasks, console)
     runner.start()
-    runner.join()
+    return runner
 
 
 if __name__ == '__main__':
-    main()
+    start()
+    interactive()

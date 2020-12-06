@@ -5,7 +5,6 @@ class TestTask(BaseTask):
     __last_executed_day = -1
 
     def should_run(self, year: int, month: int, day: int, hour: int, minute: int, week_day: int) -> bool:
-        print(hour, minute)
         if hour == 1:
             if day != self.__last_executed_day:
                 self.__last_executed_day = day
