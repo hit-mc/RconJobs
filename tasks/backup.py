@@ -1,7 +1,7 @@
 from jobs import BaseTask, _RConsole
 
 
-class TestTask(BaseTask):
+class BackupTask(BaseTask):
     __last_executed_day = -1
 
     def should_run(self, year: int, month: int, day: int, hour: int, minute: int, week_day: int) -> bool:
