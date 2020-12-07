@@ -1,4 +1,5 @@
 import importlib
+import logging
 import os
 import pkgutil
 
@@ -12,7 +13,9 @@ def load_plugin_modules(task_directory: str) -> list:
     plugins = []
     importlib.invalidate_caches()
     for _, module_name, _ in pkgutil.iter_modules([task_directory]):
+        module = task_directory + '.' + module_name
+        logging.debug(f'Import task module {module}')
         plugins.append(
-            importlib.import_module(task_directory + '.' + module_name)
+            importlib.import_module(module)
         )
     return plugins
