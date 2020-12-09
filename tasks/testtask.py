@@ -8,7 +8,7 @@ class TestTask(BaseTask):
         # if self.__last_executed_min != minute:
         #     self.__last_executed_min = minute
         #     return True
-        return False
+        return True
 
     def run(self, console: _RConsole) -> None:
         console.execute('say test3')

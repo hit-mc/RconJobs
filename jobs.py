@@ -11,7 +11,6 @@ class _RConsole:
     __lock_connection_action = Lock()
     __lock_auto_close_thread = Lock()
 
-    __auto_close_timer = None
     __disconnect_seconds = 100
 
     def __init__(self, host, port: int, password, use_tls: bool = True):
@@ -19,6 +18,7 @@ class _RConsole:
             True: 1,
             False: 0
         }
+        self.__auto_close_timer = AsyncCountdownTimer(self.__disconnect_seconds, self.__disconnect)
         self.__con = MCRcon(host, password, port, tls[use_tls])
 
     def execute(self, command: str, timeout: int = 0) -> str:
@@ -32,10 +32,8 @@ class _RConsole:
             if not self.__con.socket:
                 self.__con.connect()
         with self.__lock_auto_close_thread:
-            if self.__auto_close_timer:
-                self.__auto_close_timer.reset()
-            else:
-                self.__auto_close_timer = AsyncCountdownTimer(self.__disconnect_seconds, self.__disconnect)
+            self.__auto_close_timer.reset()
+            self.__auto_close_timer = AsyncCountdownTimer(self.__disconnect_seconds, self.__disconnect)
             self.__auto_close_timer.start()
 
         # TODO: implement timeout
@@ -51,9 +49,13 @@ class _RConsole:
             self.__auto_close_timer.reset()
 
     def __disconnect(self):
+        disconnected = False
         with self.__lock_connection_action:
             if self.__con.socket:
                 self.__con.disconnect()
+                disconnected = True
+        if disconnected:
+            logging.info('Console is inactive. Disconnected from RCON server.')
 
 
 class TimedOutException(Exception):
