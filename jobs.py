@@ -1,23 +1,25 @@
+import logging
 import time
 from threading import Thread, Lock
 
 from mcrcon import MCRcon
 
+from atimer import AsyncCountdownTimer
+
 
 class _RConsole:
     __lock_connection_action = Lock()
-    __lock_disconnect_counter = Lock()
-    __disconnect_counter = 0
+    __lock_auto_close_thread = Lock()
+
     __disconnect_seconds = 100
-    __run = True
 
     def __init__(self, host, port: int, password, use_tls: bool = True):
         tls = {
             True: 1,
             False: 0
         }
+        self.__auto_close_timer = AsyncCountdownTimer(self.__disconnect_seconds, self.__disconnect)
         self.__con = MCRcon(host, password, port, tls[use_tls])
-        self.__auto_close_thread = None
 
     def execute(self, command: str, timeout: int = 0) -> str:
         """
@@ -25,38 +27,35 @@ class _RConsole:
         in seconds. If it is set to 0, the function waits until a response is received. If timed out,
         an `TimedOutException` will be thrown. :return: the response echo.
         """
-        # reset counter
-        with self.__lock_disconnect_counter:
-            self.__disconnect_counter = 0
-
         # check connection
         with self.__lock_connection_action:
             if not self.__con.socket:
                 self.__con.connect()
-                if not self.__auto_close_thread:
-                    self.__auto_close_thread = Thread(target=self.__auto_disconnect)
-                    self.__auto_close_thread.start()
+        with self.__lock_auto_close_thread:
+            self.__auto_close_timer.reset()
+            self.__auto_close_timer = AsyncCountdownTimer(self.__disconnect_seconds, self.__disconnect)
+            self.__auto_close_timer.start()
 
         # TODO: implement timeout
         if timeout:
             raise NotImplementedError("Sorry, timeout has not been implemented")
 
         # execute command
-        print(f'Execute command: {command}')
+        logging.info(f'Execute command: {command}')
         return self.__con.command(command)
 
     def __del__(self):
-        self.__run = False
+        if self.__auto_close_timer:
+            self.__auto_close_timer.reset()
 
-    def __auto_disconnect(self):
-        while self.__run:
-            while self.__disconnect_counter < self.__disconnect_seconds:
-                time.sleep(1)
-                with self.__lock_disconnect_counter:
-                    self.__disconnect_counter += 1
-            with self.__lock_connection_action:
-                if self.__con.socket:
-                    self.__con.disconnect()
+    def __disconnect(self):
+        disconnected = False
+        with self.__lock_connection_action:
+            if self.__con.socket:
+                self.__con.disconnect()
+                disconnected = True
+        if disconnected:
+            logging.info('Console is inactive. Disconnected from RCON server.')
 
 
 class TimedOutException(Exception):
