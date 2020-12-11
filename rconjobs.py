@@ -90,7 +90,7 @@ runner = None
 console = None
 
 
-def _stop(runner, console):
+def _stop(runner: JobRunner, console):
     print('Stopping...')
     runner.stop()
     logging.info('Waiting JobRunner to stop...')
@@ -101,10 +101,14 @@ def _stop(runner, console):
     exit(0)
 
 
-def _info(runner, console):
+def _info(runner: JobRunner, console):
+    counter_polled = runner.get_counter_polled()
+    time_range = time.time() - runner.get_start_time()
+    pps = counter_polled / time_range
     print('Counters:')
-    print(f'Polled: {runner.get_counter_polled()}')
+    print(f'Polled: {counter_polled}')
     print(f'Triggered: {runner.get_counter_triggered()}')
+    print(f'PPS (total): {round(pps, 3)}')
 
 
 def interactive():
