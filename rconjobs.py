@@ -17,6 +17,7 @@ class JobRunner(Thread):
         self.__console = console
         self.__run = True
         self.__verbose = verbose
+        self.__start_time = -1
 
     def __del__(self):
         self.stop()
@@ -28,8 +29,12 @@ class JobRunner(Thread):
     def stop(self):
         self.__run = False
 
+    def get_start_time(self):
+        return self.__start_time
+
     def run(self):
         print('Polling thread is started.')
+        self.__start_time = time.time()
         while self.__run:
             for task in self.__tasks:
                 task: BaseTask
